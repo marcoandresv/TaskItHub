@@ -8,12 +8,14 @@ import java.util.List;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * User
  */
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity {
     private String name;
     private String username;

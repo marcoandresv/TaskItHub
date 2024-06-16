@@ -9,19 +9,21 @@ import java.util.List;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Role
  */
 @Entity
 @Data
-public class Role {
+@EqualsAndHashCode(callSuper = true)
+public class Role extends BaseEntity{
     private String name;
 
     @ManyToMany(mappedBy = "roles")
     private List<User> users = new ArrayList<>();
-    //NOTE: Investigate how to use Set
-    //private Set<User> users = new HashSet<>();
+    // NOTE: Investigate how to use Set
+    // private Set<User> users = new HashSet<>();
 
     
 }

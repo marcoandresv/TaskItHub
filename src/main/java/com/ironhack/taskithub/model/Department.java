@@ -10,12 +10,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Department
  */
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class Department extends BaseEntity{
     private String name;
 

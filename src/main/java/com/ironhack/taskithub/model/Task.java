@@ -12,15 +12,19 @@ import com.ironhack.taskithub.enums.Status;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Task
  */
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class Task extends BaseEntity{
     private String title;
     private String description;
@@ -33,8 +37,13 @@ public class Task extends BaseEntity{
     private Status status;
 
     @ManyToMany
+    @JoinTable(
+        name = "task_assigned_users",
+        joinColumns = @JoinColumn(name = "task_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private List<User> assignedUsers = new ArrayList<>();
-    //NOTE: investigate sets to see if it is a better option
+    // NOTE: investigate sets to see if it is a better option
     //private Set<User> assignedUsers = new HashSet<>();
     
 
@@ -46,7 +55,7 @@ public class Task extends BaseEntity{
     
     @ManyToMany
     private List<User> supervisors = new ArrayList<>();
-    //NOTE: Investigate sets implementation
+    // NOTE: Investigate sets implementation
     //private Set<User> supervisors = new HashSet<>();
 
 
