@@ -1,6 +1,7 @@
 package com.ironhack.taskithub.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,24 +30,25 @@ public class UserController {
     @PostMapping
     public ResponseEntity<User> createUser(User user) {
         return ResponseEntity.ok(userService.createUser(user));
-    
     }
     
+    @GetMapping
+    public ResponseEntity<Optional<User>> getUserByUsername(String username) {
+        return ResponseEntity.ok(userService.getUserByUsername(username));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    @PutMapping
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
-        return ResponseEntity.ok(userService.updateUser(user));
-    }
-
-
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers(){
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+    @PutMapping
+    public ResponseEntity<User> updateUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.updateUser(user));
     }
     
     @DeleteMapping("/{id}")
@@ -54,6 +56,5 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
 
 }

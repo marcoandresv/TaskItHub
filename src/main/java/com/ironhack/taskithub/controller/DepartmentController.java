@@ -25,12 +25,10 @@ public class DepartmentController {
     @Autowired
     private DepartmentService departmentService;
 
-    
     @PostMapping
     public ResponseEntity<Department> createDepartment(@RequestBody Department department) {
         return ResponseEntity.ok(departmentService.createDepartment(department));
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) {

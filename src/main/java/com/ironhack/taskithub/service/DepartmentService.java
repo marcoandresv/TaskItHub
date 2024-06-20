@@ -20,16 +20,13 @@ public class DepartmentService {
         return departmentRepository.save(department);
     }
 
-
     public List<Department> getAllDepartments(){
         return departmentRepository.findAll();
     }
 
-
     public Department getDepartmentById(Long id) {
         return departmentRepository.findById(id).orElseThrow(() -> new RuntimeException("Department not found"));
     }
-
 
     public Department updateDepartment(Department department) {
         return departmentRepository.save(department);

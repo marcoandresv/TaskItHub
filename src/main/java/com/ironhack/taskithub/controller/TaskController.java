@@ -30,23 +30,6 @@ public class TaskController {
         return ResponseEntity.ok(taskService.createTask(task));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return ResponseEntity.ok(taskService.getTaskById(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
-        task.setId(id);
-        return ResponseEntity.ok(taskService.updateTask(task));
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id){
-       taskService.deleteTask(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/department/{departmentId}")
     public ResponseEntity<List<Task>> getTasksByDepartment(@PathVariable Long departmentId) {
         return ResponseEntity.ok(taskService.getTasksByDepartment(departmentId));
@@ -56,5 +39,26 @@ public class TaskController {
     public ResponseEntity<List<Task>> getTasksByUser(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.getTasksByUser(id));
     }
-    
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
+        return ResponseEntity.ok(taskService.getTaskById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Task>> getAllTasks() {
+        return ResponseEntity.ok(taskService.getAllTasks());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
+        task.setId(id);
+        return ResponseEntity.ok(taskService.updateTask(task));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+        taskService.deleteTask(id);
+        return ResponseEntity.noContent().build();
+    }
 }
