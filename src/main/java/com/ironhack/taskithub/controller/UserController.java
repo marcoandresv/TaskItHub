@@ -32,7 +32,7 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(user));
     }
     
-    @GetMapping
+    @GetMapping("/{username}")
     public ResponseEntity<Optional<User>> getUserByUsername(String username) {
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
