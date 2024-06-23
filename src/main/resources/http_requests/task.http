@@ -1,0 +1,41 @@
+POST http://localhost:8080/tasks
+Content-Type: application/json
+
+{
+    "task": {
+        "title": "Setup worker computers",
+        "description": "Need to set up worker computers for our office",
+        "status": "IN_PROGRESS"
+    },
+    "departmentId": 1,
+    "createdById": 1,
+    "assignedUserIds": [1, 2]
+}
+
+
+GET http://localhost:8080/tasks/1
+
+
+PUT http://localhost:8080/tasks/1
+Content-Type: application/json
+
+{
+    "task": {
+        "title": "Setup worker computers - Updated",
+        "description": "Need to set up worker computers for our office - Updated",
+        "status": "COMPLETED"
+    },
+    "assignedUserIds": [2, 3]
+}
+
+GET http://localhost:8080/tasks/user/2
+
+
+
+GET http://localhost:8080/tasks/created-by/1
+Accept: application/json
+
+
+
+GET http://localhost:8080/tasks/assigned-to/2
+Accept: application/json

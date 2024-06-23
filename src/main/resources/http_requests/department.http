@@ -1,0 +1,46 @@
+
+POST http://localhost:8080/departments
+Content-Type: application/json
+{
+    "name": "IT Apartment"
+}
+
+POST http://localhost:8080/departments
+Content-Type: application/json
+{
+    "name": "Marketing Department"
+}
+
+POST http://localhost:8080/departments
+Content-Type: application/json
+{
+    "name": "HR Department"
+}
+
+POST http://localhost:8080/departments
+Content-Type: application/json
+{
+    "name": "TEST Department"
+}
+
+GET http://localhost:8080/departments
+
+
+
+GET http://localhost:8080/departments/1
+GET http://localhost:8080/departments/2
+GET http://localhost:8080/departments/3
+GET http://localhost:8080/departments/4
+
+
+
+PUT http://localhost:8080/departments/1
+Content-Type: application/json
+{
+    "name": "IT Department"
+}
+
+
+
+
+DELETE http://localhost:8080/departments/4

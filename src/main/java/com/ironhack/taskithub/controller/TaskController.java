@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ironhack.taskithub.dto.TaskDTO;
 import com.ironhack.taskithub.model.Task;
 import com.ironhack.taskithub.service.TaskService;
 
@@ -26,8 +28,13 @@ public class TaskController {
     private TaskService taskService;
 
     @PostMapping
-    public ResponseEntity<Task> createTask(Task task) {
-        return ResponseEntity.ok(taskService.createTask(task));
+    public ResponseEntity<Task> createTask(@RequestBody TaskDTO taskDTO) {
+        Task task = taskDTO.getTask();
+        Long departmentId = taskDTO.getDepartmentId();
+        Long createdById = taskDTO.getCreatedById();
+        List<Long> assignedUserIds = taskDTO.getAssignedUserIds();
+
+        return ResponseEntity.ok(taskService.createTask(task, departmentId, createdById, assignedUserIds));
     }
 
     @GetMapping("/department/{departmentId}")
@@ -35,10 +42,20 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getTasksByDepartment(departmentId));
     }
 
-    @GetMapping("/user/{id}")
-    public ResponseEntity<List<Task>> getTasksByUser(@PathVariable Long id) {
-        return ResponseEntity.ok(taskService.getTasksByUser(id));
+
+    @GetMapping("/created-by/{userId}")
+    public ResponseEntity<List<Task>> getTasksCreatedByUser(@PathVariable Long userId) {
+        List<Task> tasks = taskService.getTasksCreatedByUser(userId);
+        return ResponseEntity.ok(tasks);
     }
+
+    @GetMapping("/assigned-to/{userId}")
+    public ResponseEntity<List<Task>> getTasksAssignedToUser(@PathVariable Long userId) {
+        List<Task> tasks = taskService.getTasksAssignedToUser(userId);
+        return ResponseEntity.ok(tasks);
+    }
+
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
@@ -51,9 +68,12 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
-        task.setId(id);
-        return ResponseEntity.ok(taskService.updateTask(task));
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody TaskDTO taskDTO) {
+        Task task = taskDTO.getTask();
+        List<Long> assignedUserIds = taskDTO.getAssignedUserIds();
+
+        Task updatedTask = taskService.updateTask(id, task, assignedUserIds);
+        return ResponseEntity.ok(updatedTask);
     }
 
     @DeleteMapping

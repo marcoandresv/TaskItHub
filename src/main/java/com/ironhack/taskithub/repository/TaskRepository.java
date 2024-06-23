@@ -14,9 +14,6 @@ import com.ironhack.taskithub.model.Task;
 public interface TaskRepository extends JpaRepository<Task, Long>{
     List<Task> findByDepartmentId(Long departmentId);
     List<Task> findByAssignedUsers_Id(Long userId);
-    List<Task> findByManagerId(Long managerId);
-
-
-
+    List<Task> findByCreatedBy_Id(Long userId);
     
 }

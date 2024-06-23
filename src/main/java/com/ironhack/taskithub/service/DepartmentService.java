@@ -1,5 +1,6 @@
 package com.ironhack.taskithub.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +29,18 @@ public class DepartmentService {
         return departmentRepository.findById(id).orElseThrow(() -> new RuntimeException("Department not found"));
     }
 
-    public Department updateDepartment(Department department) {
-        return departmentRepository.save(department);
+    public Department updateDepartment(Long id, Department updatedDepartment) {
+        Department existingDepartment = departmentRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Department not found"));
+
+        // to get and preserve the "createdAt" and "id" values
+        updatedDepartment.setCreatedAt(existingDepartment.getCreatedAt());
+        updatedDepartment.setId(id);
+
+        // to modify the "updatedAt" value
+        updatedDepartment.setUpdatedAt(LocalDateTime.now());
+
+        return departmentRepository.save(updatedDepartment);
     }
 
     public void deleteDepartment(Long id) {

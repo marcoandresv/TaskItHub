@@ -32,10 +32,4 @@ public class User extends BaseEntity {
     @ManyToMany
     private List<Role> roles = new ArrayList<>();
 
-    public User(String name, String username, String password) {
-        this.name = name;
-        this.username = username;
-        this.password = password;
-    }
-
 }
