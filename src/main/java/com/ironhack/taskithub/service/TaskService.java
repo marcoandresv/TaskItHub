@@ -2,6 +2,7 @@ package com.ironhack.taskithub.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,14 +37,18 @@ public class TaskService {
         User createdBy = userRepository.findById(createdById)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        List<User> assignedUsers = userRepository.findAllById(assignedUserIds);
-
         task.setDepartment(department);
         task.setCreatedBy(createdBy);
-        task.setAssignedUsers(assignedUsers);
+
+        if (assignedUserIds != null) {
+            List<User> assignedUsers = assignedUserIds.stream()
+                    .map(id -> userRepository.findById(id)
+                            .orElseThrow(() -> new EntityNotFoundException("User not found")))
+                    .collect(Collectors.toList());
+            task.setAssignedUsers(assignedUsers);
+        }
 
         return taskRepository.save(task);
-
     }
 
     public List<Task> getTasksByDepartment(Long departmentId) {
@@ -52,7 +57,6 @@ public class TaskService {
 
     public List<Task> getTasksCreatedByUser(Long userId) {
         return taskRepository.findByCreatedBy_Id(userId);
-
     }
 
     public List<Task> getTasksAssignedToUser(Long userId) {
@@ -67,23 +71,34 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
+    // WARN: rework how the task retrieves info and how it is updated
     public Task updateTask(Long id, Task updatedTask, List<Long> assignedUserIds) {
-
         Task existingTask = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found"));
 
-        List<User> assignedUsers = userRepository.findAllById(assignedUserIds);
+        existingTask.setTitle(updatedTask.getTitle());
+        existingTask.setDescription(updatedTask.getDescription());
 
+        // TODO: find department by department Id, if doesn't exist throw error, if it does, save
+        existingTask.setDepartment(updatedTask.getDepartment());
 
-        // to get and preserve the "createdAt" and "id" values
-        updatedTask.setCreatedAt(existingTask.getCreatedAt());
-        updatedTask.setId(id);
+        existingTask.setDueDate(updatedTask.getDueDate());
+        existingTask.setPriority(updatedTask.getPriority());
+        existingTask.setStatus(updatedTask.getStatus());
 
         // to modify the "updatedAt" value
-        updatedTask.setUpdatedAt(LocalDateTime.now());
+        existingTask.setUpdatedAt(LocalDateTime.now());
 
-        updatedTask.setAssignedUsers(assignedUsers);
+        if (assignedUserIds != null) {
 
+            List<User> assignedUsers = userRepository.findAllById(assignedUserIds); // if doesn't find, throw error
+            existingTask.setAssignedUsers(assignedUsers);
+
+        }
+
+        //List<User> assignedUsers = userRepository.findAllById(assignedUserIds);
+        //existingTask.setAssignedUsers(assignedUsers);
+        //
         return taskRepository.save(updatedTask);
     }
 

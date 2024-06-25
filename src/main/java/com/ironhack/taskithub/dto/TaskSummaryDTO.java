@@ -3,20 +3,20 @@ package com.ironhack.taskithub.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.ironhack.taskithub.model.Task;
-
 import com.ironhack.taskithub.enums.*;
 
 import lombok.Data;
 
 /**
- * TaskDTO
+ * TaskSummaryDTO
  */
 @Data
-public class TaskDTO {
+public class TaskSummaryDTO {
     private Long id;
     private String title;
     private String description;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private LocalDateTime dueDate;
     private Priority priority;
     private Status status;
@@ -24,15 +24,6 @@ public class TaskDTO {
     private Long createdById;
     private List<Long> assignedUserIds;
 
-    public Task toTask() {
-        Task task = new Task();
-        task.setId(this.id);
-        task.setTitle(this.title);
-        task.setDescription(this.description);
-        task.setDueDate(this.dueDate);
-        task.setPriority(this.priority);
-        task.setStatus(this.status);
-        return task;
-    }
     
+
 }

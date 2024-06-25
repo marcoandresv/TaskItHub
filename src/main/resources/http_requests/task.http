@@ -1,41 +1,95 @@
+### Creates a new task
 POST http://localhost:8080/tasks
 Content-Type: application/json
 
 {
-    "task": {
-        "title": "Setup worker computers",
-        "description": "Need to set up worker computers for our office",
-        "status": "IN_PROGRESS"
-    },
+    "title": "Setup worker computers",
+    "description": "Need to set up worker computers for our office",
+    "status": "IN_PROGRESS",
     "departmentId": 1,
     "createdById": 1,
     "assignedUserIds": [1, 2]
 }
 
-
-GET http://localhost:8080/tasks/1
-
-
-PUT http://localhost:8080/tasks/1
+### Creates a task by user with ID 2
+POST http://localhost:8080/tasks
 Content-Type: application/json
 
 {
-    "task": {
-        "title": "Setup worker computers - Updated",
-        "description": "Need to set up worker computers for our office - Updated",
-        "status": "COMPLETED"
-    },
-    "assignedUserIds": [2, 3]
+  "title": "Interview new candidates",
+  "description": "Interview loop scheduling and preparation",
+  "dueDate": "2024-07-01T00:00:00",
+  "priority": "MEDIUM",
+  "status": "NOT_STARTED",
+  "departmentId": 1,
+  "createdById": 2,
+  "assignedUserIds": [1, 5]
 }
 
+### Creates a task for the Test department
+POST http://localhost:8080/tasks
+Content-Type: application/json
+
+{
+  "title": "TEST TASK",
+  "description": "NEW TEST",
+  "dueDate": "2024-07-01T00:00:00",
+  "priority": "LOW",
+  "status": "NOT_STARTED",
+  "departmentId": 1,
+  "createdById": 2
+}
+
+### Creates another task
+POST http://localhost:8080/tasks
+Content-Type: application/json
+
+{
+  "title": "New Task",
+  "description": "This is a new task",
+  "dueDate": "2024-07-01T00:00:00",
+  "priority": "HIGH",
+  "status": "IN_PROGRESS",
+  "departmentId": 1,
+  "createdById": 1
+}
+
+### Get all tasks
+GET http://localhost:8080/tasks
+
+### Gets task with task ID 1
+GET http://localhost:8080/tasks/1
+
+### Gets task with task ID 2
+GET http://localhost:8080/tasks/2
+
+### Updates task with task ID 4
+PUT http://localhost:8080/tasks/4
+Content-Type: application/json
+
+{
+    "title": "Old task",
+    "description": "this is an old task",
+    "status": "COMPLETED",
+}
+
+### Gets tasks for user with ID 2
 GET http://localhost:8080/tasks/user/2
 
 
 
+### Gets tasks created by user with ID 1
 GET http://localhost:8080/tasks/created-by/1
 Accept: application/json
 
 
 
+### Gets tasks assigned to user with ID 2
 GET http://localhost:8080/tasks/assigned-to/2
 Accept: application/json
+
+### Delete task with ID 2
+DELETE http://localhost:8080/tasks/2
+
+### Delete task with ID 4
+DELETE http://localhost:8080/tasks/4

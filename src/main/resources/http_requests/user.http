@@ -1,23 +1,28 @@
 
-
+### Post a user
 POST http://localhost:8080/users
-content-type: application/json
+Content-Type: application/json
+
 {
     "name": "Marco Villasmil",
     "username": "marcoandresv",
     "password": "123456"
 }
 
+### Post another user
 POST http://localhost:8080/users
 content-type: application/json
+
 {
     "name": "Julie",
     "username": "djou",
     "password": "test"
 }
 
+### Post Test user
 POST http://localhost:8080/users
 content-type: application/json
+
 {
     "name": "TEST test",
     "username": "test",
@@ -25,26 +30,37 @@ content-type: application/json
 }
 
 
-
+### Get all users
 GET http://localhost:8080/users
 Accept: application/json
 
-
+### Get user with ID 1
 GET http://localhost:8080/users/1
+
+### Get user with ID 2
 GET http://localhost:8080/users/2
+
+### Get user with ID 3
 GET http://localhost:8080/users/3
+
+### Get user with an invalid ID
 GET http://localhost:8080/users/555
 
 
+### Get user with username "marcoandresv"
 GET http://localhost:8080/users/username/marcoandresv
 
+### Get user with username "djou"
 GET http://localhost:8080/users/username/djou
 
+### Get user with username "test"
 GET http://localhost:8080/users/username/test
 
+### tries to get a fake user
 GET http://localhost:8080/users/username/doesnotexist
 
 
+### Update user with ID 1
 PUT http://localhost:8080/users/1
 content-type: application/json
 {
@@ -53,11 +69,13 @@ content-type: application/json
     "password": "marco"
 }
 
-
+#### Deletes user with ID 3
 DELETE http://localhost:8080/users/3
 
+#### Deletes user with ID 4
 DELETE http://localhost:8080/users/4
 
+#### Deletes user with ID 5
 DELETE http://localhost:8080/users/5
 
 
