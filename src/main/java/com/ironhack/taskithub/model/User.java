@@ -3,12 +3,16 @@ package com.ironhack.taskithub.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ironhack.taskithub.enums.Role;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 /**
  * User
@@ -16,20 +20,20 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
-@NoArgsConstructor
 public class User extends BaseEntity {
     private String name;
     private String username;
     private String password;
 
-    @ManyToMany
-    private List<Department> departments = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private Role role;
+    
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "assignedUsers")
     private List<Task> tasks = new ArrayList<>();
 
-    @ManyToMany
-    private List<Role> roles = new ArrayList<>();
 
 }

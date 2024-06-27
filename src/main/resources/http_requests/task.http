@@ -23,7 +23,7 @@ Content-Type: application/json
   "status": "NOT_STARTED",
   "departmentId": 1,
   "createdById": 2,
-  "assignedUserIds": [1, 5]
+  "assignedUserIds": [1, 2]
 }
 
 ### Creates a task for the Test department
@@ -45,13 +45,28 @@ POST http://localhost:8080/tasks
 Content-Type: application/json
 
 {
-  "title": "New Task",
-  "description": "This is a new task",
-  "dueDate": "2024-07-01T00:00:00",
+  "title": "Work on budget for next week",
+  "description": "Need to work on budget for next week",
+  "dueDate": "2024-07-15T00:00:00",
   "priority": "HIGH",
-  "status": "IN_PROGRESS",
+  "status": "NOT_STARTED",
   "departmentId": 1,
-  "createdById": 1
+  "createdById": 4,
+  "assignedUserIds": [3, 4]
+}
+
+### Creates another task
+POST http://localhost:8080/tasks
+Content-Type: application/json
+
+{
+  "title": "new task",
+  "description": "fresh out the oven",
+  "priority": "LOW",
+  "status": "NOT_STARTED",
+  "departmentId": 3,
+  "createdById": 3,
+  "assignedUserIds": [3, 4]
 }
 
 ### Get all tasks
@@ -63,19 +78,15 @@ GET http://localhost:8080/tasks/1
 ### Gets task with task ID 2
 GET http://localhost:8080/tasks/2
 
-### Updates task with task ID 4
-PUT http://localhost:8080/tasks/4
+### Updates task with task ID 5
+PUT http://localhost:8080/tasks/5
 Content-Type: application/json
 
 {
     "title": "Old task",
     "description": "this is an old task",
-    "status": "COMPLETED",
+    "status": "COMPLETED"
 }
-
-### Gets tasks for user with ID 2
-GET http://localhost:8080/tasks/user/2
-
 
 
 ### Gets tasks created by user with ID 1

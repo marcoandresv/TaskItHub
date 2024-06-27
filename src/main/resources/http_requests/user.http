@@ -6,7 +6,8 @@ Content-Type: application/json
 {
     "name": "Marco Villasmil",
     "username": "marcoandresv",
-    "password": "123456"
+    "password": "123456",
+    "role": "ADMIN"
 }
 
 ### Post another user
@@ -16,7 +17,8 @@ content-type: application/json
 {
     "name": "Julie",
     "username": "djou",
-    "password": "test"
+    "password": "test",
+    "role": "USER"
 }
 
 ### Post Test user
@@ -26,7 +28,19 @@ content-type: application/json
 {
     "name": "TEST test",
     "username": "test",
-    "password": "test"
+    "password": "test",
+    "role": "USER"
+}
+
+### Post another user
+POST http://localhost:8080/users
+content-type: application/json
+
+{
+    "name": "supeeertessssttt",
+    "username": "qwerwerewr",
+    "password": "asdlfkashgl",
+    "role": "USER"
 }
 
 
@@ -63,10 +77,12 @@ GET http://localhost:8080/users/username/doesnotexist
 ### Update user with ID 1
 PUT http://localhost:8080/users/1
 content-type: application/json
+
 {
     "name": "Marco Andres",
     "username": "marcoandresv",
-    "password": "marco"
+    "password": "marco",
+    "departmentId": 4
 }
 
 #### Deletes user with ID 3

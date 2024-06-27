@@ -13,9 +13,11 @@ import com.ironhack.taskithub.model.User;
  * UserRepository
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>{
-    List<User> findByDepartments(List<Department> departments);
+public interface UserRepository extends JpaRepository<User, Long> {
+    List<User> findByDepartment(Department department);
+
     Optional<User> findByUsername(String username);
 
-    
+    List<User> findByDepartmentId(Long departmentId);
+
 }

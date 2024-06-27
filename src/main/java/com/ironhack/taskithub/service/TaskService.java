@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ironhack.taskithub.dto.TaskDTO;
+import com.ironhack.taskithub.dto.TaskSummaryDTO;
 import com.ironhack.taskithub.model.Department;
 import com.ironhack.taskithub.model.Task;
 import com.ironhack.taskithub.model.User;
@@ -29,6 +31,11 @@ public class TaskService {
 
     @Autowired
     private DepartmentRepository departmentRepository;
+
+    public Task createTaskFromDTO(TaskDTO taskDTO) {
+        Task task = taskDTO.toTask();
+        return createTask(task, taskDTO.getDepartmentId(), taskDTO.getCreatedById(), taskDTO.getAssignedUserIds());
+    }
 
     public Task createTask(Task task, Long departmentId, Long createdById, List<Long> assignedUserIds) {
         Department department = departmentRepository.findById(departmentId)
@@ -71,7 +78,11 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
-    // WARN: rework how the task retrieves info and how it is updated
+    public Task updateTaskFromDTO(Long id, TaskDTO taskDTO) {
+        Task task = taskDTO.toTask();
+        return updateTask(id, task, taskDTO.getAssignedUserIds());
+    }
+
     public Task updateTask(Long id, Task updatedTask, List<Long> assignedUserIds) {
         Task existingTask = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Task not found"));
@@ -79,30 +90,61 @@ public class TaskService {
         existingTask.setTitle(updatedTask.getTitle());
         existingTask.setDescription(updatedTask.getDescription());
 
-        // TODO: find department by department Id, if doesn't exist throw error, if it does, save
-        existingTask.setDepartment(updatedTask.getDepartment());
+        // Find and set the department
+        if (updatedTask.getDepartment() != null) {
+            Department department = departmentRepository.findById(updatedTask.getDepartment().getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+            existingTask.setDepartment(department);
+        }
 
         existingTask.setDueDate(updatedTask.getDueDate());
         existingTask.setPriority(updatedTask.getPriority());
         existingTask.setStatus(updatedTask.getStatus());
 
-        // to modify the "updatedAt" value
+        // Update the "updatedAt" value
         existingTask.setUpdatedAt(LocalDateTime.now());
 
         if (assignedUserIds != null) {
-
-            List<User> assignedUsers = userRepository.findAllById(assignedUserIds); // if doesn't find, throw error
+            List<User> assignedUsers = assignedUserIds.stream()
+                    .map(userId -> userRepository.findById(userId)
+                            .orElseThrow(() -> new EntityNotFoundException("User not found")))
+                    .collect(Collectors.toList());
             existingTask.setAssignedUsers(assignedUsers);
-
         }
 
-        //List<User> assignedUsers = userRepository.findAllById(assignedUserIds);
-        //existingTask.setAssignedUsers(assignedUsers);
-        //
-        return taskRepository.save(updatedTask);
+        return taskRepository.save(existingTask);
     }
 
     public void deleteTask(Long id) {
         taskRepository.deleteById(id);
+    }
+
+    public TaskSummaryDTO toTaskSummaryDTO(Task task) {
+        TaskSummaryDTO dto = new TaskSummaryDTO();
+        dto.setId(task.getId());
+        dto.setTitle(task.getTitle());
+        dto.setDescription(task.getDescription());
+        dto.setCreatedAt(task.getCreatedAt());
+        dto.setUpdatedAt(task.getUpdatedAt());
+        dto.setDueDate(task.getDueDate());
+        dto.setPriority(task.getPriority());
+        dto.setStatus(task.getStatus());
+        dto.setDepartmentId(task.getDepartment().getId());
+        dto.setCreatedById(task.getCreatedBy().getId());
+        dto.setAssignedUserIds(task.getAssignedUsers().stream().map(User::getId).collect(Collectors.toList()));
+        return dto;
+    }
+
+    public TaskDTO toTaskDTO(Task task) {
+        TaskDTO dto = new TaskDTO();
+        dto.setId(task.getId());
+        dto.setTitle(task.getTitle());
+        dto.setDescription(task.getDescription());
+        dto.setPriority(task.getPriority());
+        dto.setDueDate(task.getDueDate());
+        dto.setStatus(task.getStatus());
+        dto.setDepartmentId(task.getDepartment().getId());
+        dto.setCreatedById(task.getCreatedBy().getId());
+        return dto;
     }
 }

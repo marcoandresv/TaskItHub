@@ -22,6 +22,14 @@ Content-Type: application/json
     "name": "HR Department"
 }
 
+### Creates the Finance Department
+POST http://localhost:8080/departments
+Content-Type: application/json
+
+{
+    "name": "Finance Department"
+}
+
 ### Creates the TEST Department
 POST http://localhost:8080/departments
 Content-Type: application/json
@@ -52,6 +60,7 @@ GET http://localhost:8080/departments/4
 ### Update department with ID 1. Fixes typo
 PUT http://localhost:8080/departments/1
 Content-Type: application/json
+
 {
     "name": "IT Department"
 }

@@ -1,17 +1,15 @@
 package com.ironhack.taskithub.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import com.ironhack.taskithub.dto.DepartmentDTO;
+import com.ironhack.taskithub.dto.DepartmentSummaryDTO;
 
 import com.ironhack.taskithub.model.Department;
 import com.ironhack.taskithub.service.DepartmentService;
@@ -26,24 +24,39 @@ public class DepartmentController {
     private DepartmentService departmentService;
 
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@RequestBody Department department) {
-        return ResponseEntity.ok(departmentService.createDepartment(department));
+    public ResponseEntity<DepartmentSummaryDTO> createDepartment(@RequestBody DepartmentDTO departmentDTO) {
+        Department createdDepartment = departmentService.createDepartmentFromDTO(departmentDTO);
+        if (createdDepartment != null) {
+            return ResponseEntity.ok(departmentService.toDepartmentSummaryDTO(createdDepartment));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) {
-        return ResponseEntity.ok(departmentService.getDepartmentById(id));
+    public ResponseEntity<DepartmentSummaryDTO> getDepartmentById(@PathVariable Long id) {
+        Department department = departmentService.getDepartmentById(id);
+        if (department != null) {
+            return ResponseEntity.ok(departmentService.toDepartmentSummaryDTO(department));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @GetMapping
-    public ResponseEntity<List<Department>> getAllDepartments() {
-        return ResponseEntity.ok(departmentService.getAllDepartments());
+    public ResponseEntity<List<DepartmentDTO>> getAllDepartments() {
+        List<Department> departments = departmentService.getAllDepartments();
+        List<DepartmentDTO> departmentsDTOs = departments.stream()
+            .map(departmentService::toDepartmentDTO)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(departmentsDTOs);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody Department department) {
-        Department updatedDepartment = departmentService.updateDepartment(id, department);
-        return ResponseEntity.ok(updatedDepartment);
+    public ResponseEntity<DepartmentSummaryDTO> updateDepartment(@PathVariable Long id, @RequestBody DepartmentDTO departmentDTO) {
+        Department updatedDepartment = departmentService.updateDepartmentFromDTO(id, departmentDTO);
+        if (updatedDepartment != null) {
+            return ResponseEntity.ok(departmentService.toDepartmentSummaryDTO(updatedDepartment));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @DeleteMapping("/{id}")
@@ -51,5 +64,4 @@ public class DepartmentController {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();
     }
-
 }
