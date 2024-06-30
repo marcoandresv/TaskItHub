@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ironhack.taskithub.dto.TaskDTO;
 import com.ironhack.taskithub.dto.TaskSummaryDTO;
@@ -16,7 +18,6 @@ import com.ironhack.taskithub.repository.DepartmentRepository;
 import com.ironhack.taskithub.repository.TaskRepository;
 import com.ironhack.taskithub.repository.UserRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 
 /**
  * TaskService
@@ -37,12 +38,13 @@ public class TaskService {
         return createTask(task, taskDTO.getDepartmentId(), taskDTO.getCreatedById(), taskDTO.getAssignedUserIds());
     }
 
-    public Task createTask(Task task, Long departmentId, Long createdById, List<Long> assignedUserIds) {
+    public Task createTask(Task task, Long departmentId, Long createdById, List<Long> assignedUserIds)
+            throws ResponseStatusException {
         Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
 
         User createdBy = userRepository.findById(createdById)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         task.setDepartment(department);
         task.setCreatedBy(createdBy);
@@ -50,7 +52,7 @@ public class TaskService {
         if (assignedUserIds != null) {
             List<User> assignedUsers = assignedUserIds.stream()
                     .map(id -> userRepository.findById(id)
-                            .orElseThrow(() -> new EntityNotFoundException("User not found")))
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")))
                     .collect(Collectors.toList());
             task.setAssignedUsers(assignedUsers);
         }
@@ -58,20 +60,32 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public List<Task> getTasksByDepartment(Long departmentId) {
+    public List<Task> getTasksByDepartment(Long departmentId) throws ResponseStatusException {
+
+        if (departmentRepository.findById(departmentId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found");
+        }
+
         return taskRepository.findByDepartmentId(departmentId);
     }
 
-    public List<Task> getTasksCreatedByUser(Long userId) {
+    public List<Task> getTasksCreatedByUser(Long userId) throws ResponseStatusException {
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
         return taskRepository.findByCreatedBy_Id(userId);
     }
 
-    public List<Task> getTasksAssignedToUser(Long userId) {
+    public List<Task> getTasksAssignedToUser(Long userId) throws ResponseStatusException {
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
         return taskRepository.findByAssignedUsers_Id(userId);
     }
 
-    public Task getTaskById(Long id) {
-        return taskRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Task not found"));
+    public Task getTaskById(Long id) throws ResponseStatusException {
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
     }
 
     public List<Task> getAllTasks() {
@@ -83,9 +97,9 @@ public class TaskService {
         return updateTask(id, task, taskDTO.getAssignedUserIds());
     }
 
-    public Task updateTask(Long id, Task updatedTask, List<Long> assignedUserIds) {
+    public Task updateTask(Long id, Task updatedTask, List<Long> assignedUserIds) throws ResponseStatusException {
         Task existingTask = taskRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Task not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
 
         existingTask.setTitle(updatedTask.getTitle());
         existingTask.setDescription(updatedTask.getDescription());
@@ -93,7 +107,7 @@ public class TaskService {
         // Find and set the department
         if (updatedTask.getDepartment() != null) {
             Department department = departmentRepository.findById(updatedTask.getDepartment().getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
             existingTask.setDepartment(department);
         }
 
@@ -107,7 +121,7 @@ public class TaskService {
         if (assignedUserIds != null) {
             List<User> assignedUsers = assignedUserIds.stream()
                     .map(userId -> userRepository.findById(userId)
-                            .orElseThrow(() -> new EntityNotFoundException("User not found")))
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")))
                     .collect(Collectors.toList());
             existingTask.setAssignedUsers(assignedUsers);
         }

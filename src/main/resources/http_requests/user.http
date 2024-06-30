@@ -1,7 +1,72 @@
+<<<<<<< HEAD
+###
+@H="http://localhost:8080"
+
+###
+@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxOTc3OTMxOCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.oNrMJtwj6TJIRP1D4yEAZrUJddOWuCTP3a_UbhWID5k"
+
+
+
+
+###
+### Login admin user
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "admin",
+    "password": "admin"
+}
+
+
+###
+### Login marco 
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "marcoandresv",
+    "password": "123456"
+}
+
+||||||| parent of 88b3a3d (Security Integration)
+=======
+###
+@H="http://localhost:8080"
+
+###
+@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxOTc2MTEzMSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.durFb5veh5wp_TJNS53Y9fVDCxJ7OYk3DGTmp25R7U8"
+
+
+
+
+###
+### Login admin user
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "admin",
+    "password": "admin"
+}
+
+
+###
+### Login marco 
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "marcoandresv",
+    "password": "123456"
+}
+
+>>>>>>> 88b3a3d (Security Integration)
 
 ### Post a user
-POST http://localhost:8080/users
-Content-Type: application/json
+POST {{H}}/users
+content-type: application/json
+Authorization: {{token}}
 
 {
     "name": "Marco Villasmil",
@@ -11,8 +76,10 @@ Content-Type: application/json
 }
 
 ### Post another user
-POST http://localhost:8080/users
+POST {{H}}/users
 content-type: application/json
+Authorization: {{token}}
+
 
 {
     "name": "Julie",
@@ -22,8 +89,9 @@ content-type: application/json
 }
 
 ### Post Test user
-POST http://localhost:8080/users
+POST {{H}}/users
 content-type: application/json
+Authorization: {{token}}
 
 {
     "name": "TEST test",
@@ -33,8 +101,10 @@ content-type: application/json
 }
 
 ### Post another user
-POST http://localhost:8080/users
+POST {{H}}/users
 content-type: application/json
+Authorization: {{token}}
+
 
 {
     "name": "supeeertessssttt",
@@ -45,38 +115,50 @@ content-type: application/json
 
 
 ### Get all users
-GET http://localhost:8080/users
-Accept: application/json
+GET {{H}}/users
+content-type: application/json
+authorization: {{token}}
+
 
 ### Get user with ID 1
-GET http://localhost:8080/users/1
+GET {{H}}/users/1
+authorization: {{token}}
 
 ### Get user with ID 2
-GET http://localhost:8080/users/2
+GET {{H}}/users/2
+authorization: {{token}}
 
 ### Get user with ID 3
-GET http://localhost:8080/users/3
+GET {{H}}/users/3
+authorization: {{token}}
 
 ### Get user with an invalid ID
-GET http://localhost:8080/users/555
+GET {{H}}/users/555
+authorization: {{token}}
 
 
 ### Get user with username "marcoandresv"
-GET http://localhost:8080/users/username/marcoandresv
+GET {{H}}/users/username/marcoandresv
+authorization: {{token}}
 
 ### Get user with username "djou"
-GET http://localhost:8080/users/username/djou
+GET {{H}}/users/username/djou
+authorization: {{token}}
 
 ### Get user with username "test"
-GET http://localhost:8080/users/username/test
+GET {{H}}/users/username/test
+authorization: {{token}}
 
 ### tries to get a fake user
-GET http://localhost:8080/users/username/doesnotexist
+GET {{H}}/users/username/doesnotexist
+authorization: {{token}}
 
 
-### Update user with ID 1
-PUT http://localhost:8080/users/1
+### Update user with ID 2
+PUT {{H}}/users/2
 content-type: application/json
+authorization: {{token}}
+
 
 {
     "name": "Marco Andres",
@@ -86,12 +168,15 @@ content-type: application/json
 }
 
 #### Deletes user with ID 3
-DELETE http://localhost:8080/users/3
+DELETE {{H}}/users/3
+authorization: {{token}}
 
 #### Deletes user with ID 4
-DELETE http://localhost:8080/users/4
+DELETE {{H}}/users/4
+authorization: {{token}}
 
-#### Deletes user with ID 5
-DELETE http://localhost:8080/users/5
+#### Deletes user with ID 6
+DELETE {{H}}/users/6
+authorization: {{token}}
 
 

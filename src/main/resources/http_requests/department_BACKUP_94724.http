@@ -16,7 +16,7 @@ accept: application/json
     "password": "admin"
 }
 
-||||||| parent of 88b3a3d (Security Integration)
+||||||| c1ab9d1
 =======
 ###
 @H="http://localhost:8080"
@@ -35,7 +35,7 @@ accept: application/json
     "password": "admin"
 }
 
->>>>>>> 88b3a3d (Security Integration)
+>>>>>>> feature
 ### Creates the IT Department
 POST {{H}}/departments
 Content-Type: application/json

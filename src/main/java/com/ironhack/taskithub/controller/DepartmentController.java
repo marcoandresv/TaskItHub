@@ -24,6 +24,7 @@ public class DepartmentController {
     private DepartmentService departmentService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<DepartmentSummaryDTO> createDepartment(@RequestBody DepartmentDTO departmentDTO) {
         Department createdDepartment = departmentService.createDepartmentFromDTO(departmentDTO);
         if (createdDepartment != null) {
@@ -33,6 +34,7 @@ public class DepartmentController {
     }
 
     @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<DepartmentSummaryDTO> getDepartmentById(@PathVariable Long id) {
         Department department = departmentService.getDepartmentById(id);
         if (department != null) {
@@ -42,6 +44,7 @@ public class DepartmentController {
     }
 
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<DepartmentDTO>> getAllDepartments() {
         List<Department> departments = departmentService.getAllDepartments();
         List<DepartmentDTO> departmentsDTOs = departments.stream()
@@ -51,6 +54,7 @@ public class DepartmentController {
     }
 
     @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<DepartmentSummaryDTO> updateDepartment(@PathVariable Long id, @RequestBody DepartmentDTO departmentDTO) {
         Department updatedDepartment = departmentService.updateDepartmentFromDTO(id, departmentDTO);
         if (updatedDepartment != null) {
@@ -60,6 +64,7 @@ public class DepartmentController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();
