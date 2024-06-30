@@ -22,7 +22,7 @@ accept: application/json
 @H="http://localhost:8080"
 
 ###
-@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxOTc2MDk1NSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.cFDTKH5lgx9ZQ2-rS_nDfsLDadaZg0KOpsvEQzv_sn8"
+@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxOTc3OTMxOCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.oNrMJtwj6TJIRP1D4yEAZrUJddOWuCTP3a_UbhWID5k"
 
 
 ###
