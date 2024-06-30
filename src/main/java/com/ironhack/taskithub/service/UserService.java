@@ -1,12 +1,20 @@
 package com.ironhack.taskithub.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ironhack.taskithub.dto.UserDTO;
 import com.ironhack.taskithub.enums.Role;
@@ -17,14 +25,17 @@ import com.ironhack.taskithub.repository.DepartmentRepository;
 import com.ironhack.taskithub.repository.TaskRepository;
 import com.ironhack.taskithub.repository.UserRepository;
 
-import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * UserService
  */
 
 @Service
-public class UserService {
+@RequiredArgsConstructor
+@Slf4j
+public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -35,35 +46,81 @@ public class UserService {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        List<User> users = userRepository.findByUsername(username);
+
+        if (users == null || users.isEmpty()) {
+            log.error("User not found");
+            throw new UsernameNotFoundException("User not found");
+        } else {
+
+            User user = users.get(0);
+
+            Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
+
+            return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+                    authorities);
+        }
+
+    }
+
     public UserDTO createUser(UserDTO userDTO) {
         User user = toUser(userDTO);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return toUserDTO(userRepository.save(user));
     }
 
-    public User createUser(User user, Long departmentId, List<Long> taskIds) {
+    public User createUser(User user, Long departmentId, List<Long> taskIds) throws ResponseStatusException {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            log.error("Username already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+        }
+
         if (departmentId != null) {
             Department department = departmentRepository.findById(departmentId)
-                    .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+                    .orElseThrow(() -> {
+                        log.error("Department not found");
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found");
+                    });
             user.setDepartment(department);
         }
 
         if (taskIds != null) {
             List<Task> tasks = taskIds.stream()
                     .map(taskId -> taskRepository.findById(taskId)
-                            .orElseThrow(() -> new EntityNotFoundException("Task not found")))
+                            .orElseThrow(() -> {
+                                log.error("Task not found");
+                                return new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found");
+                            }))
                     .collect(Collectors.toList());
             user.setTasks(tasks);
         }
         return userRepository.save(user);
     }
 
-    public Optional<UserDTO> getUserByUsername(String username) {
-        return userRepository.findByUsername(username).map(this::toUserDTO);
+    // to be able to initialize admin user upon server startup
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 
-    public UserDTO getUserById(Long id) {
+    public UserDTO getUserByUsername(String username) throws ResponseStatusException {
+        List<User> users = userRepository.findByUsername(username);
+        if (users.isEmpty()) {
+            log.error("User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        User user = users.get(0);
+        return toUserDTO(user);
+    }
+
+    public UserDTO getUserById(Long id) throws ResponseStatusException {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return toUserDTO(user);
     }
 
@@ -76,16 +133,17 @@ public class UserService {
         return toUserDTO(updatedUser);
     }
 
-    public User updateUser(Long id, UserDTO userDTO) {
+    public User updateUser(Long id, UserDTO userDTO) throws ResponseStatusException {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (userDTO.getName() != null) {
             existingUser.setName(userDTO.getName());
         }
 
         if (userDTO.getPassword() != null) {
-            existingUser.setPassword(userDTO.getPassword());
+            existingUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+            //existingUser.setPassword(userDTO.getPassword());
         }
 
         if (userDTO.getUsername() != null) {
@@ -98,14 +156,14 @@ public class UserService {
 
         if (userDTO.getDepartmentId() != null) {
             Department department = departmentRepository.findById(userDTO.getDepartmentId())
-                    .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
             existingUser.setDepartment(department);
         }
 
         if (userDTO.getTaskIds() != null) {
             List<Task> tasks = userDTO.getTaskIds().stream()
                     .map(taskId -> taskRepository.findById(taskId)
-                            .orElseThrow(() -> new EntityNotFoundException("Task not found")))
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found")))
                     .collect(Collectors.toList());
             existingUser.setTasks(tasks);
         }
@@ -133,7 +191,7 @@ public class UserService {
         return dto;
     }
 
-    public User toUser(UserDTO userDTO) {
+    public User toUser(UserDTO userDTO) throws ResponseStatusException {
         User user = new User();
         user.setId(userDTO.getId());
         user.setName(userDTO.getName());
@@ -145,7 +203,7 @@ public class UserService {
 
         if (userDTO.getDepartmentId() != null) {
             Department department = departmentRepository.findById(userDTO.getDepartmentId())
-                    .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Department not found"));
             user.setDepartment(department);
         }
         return user;

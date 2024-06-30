@@ -1,65 +1,98 @@
+###
+@H="http://localhost:8080"
+
+###
+@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxOTc3OTMxOCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.oNrMJtwj6TJIRP1D4yEAZrUJddOWuCTP3a_UbhWID5k"
+
+
+###
+### Login admin user
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "admin",
+    "password": "admin"
+}
+
 ### Creates the IT Department
-POST http://localhost:8080/departments
+POST {{H}}/departments
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
     "name": "IT Apartment"
 }
 
 ### Creates the Marketing Department
-POST http://localhost:8080/departments
+POST {{H}}/departments
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
     "name": "Marketing Department"
 }
 
 ### Creates the HR Department
-POST http://localhost:8080/departments
+POST {{H}}/departments
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
     "name": "HR Department"
 }
 
 ### Creates the Finance Department
-POST http://localhost:8080/departments
+POST {{H}}/departments
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
     "name": "Finance Department"
 }
 
 ### Creates the TEST Department
-POST http://localhost:8080/departments
+POST {{H}}/departments
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
     "name": "TEST Department"
 }
 
 ### List all departments
-GET http://localhost:8080/departments
+GET {{H}}/departments
+authorization: {{token}}
 
 
 
 ### Get department with ID 1
-GET http://localhost:8080/departments/1
+GET {{H}}/departments/1
+authorization: {{token}}
 
 ### Get department with ID 2
-GET http://localhost:8080/departments/2
+GET {{H}}/departments/2
+authorization: {{token}}
 
 ### Get department with ID 3
-GET http://localhost:8080/departments/3
+GET {{H}}/departments/3
+authorization: {{token}}
 
 
 ### Get department with ID 4
-GET http://localhost:8080/departments/4
+GET {{H}}/departments/4
+authorization: {{token}}
 
 
 ### Update department with ID 1. Fixes typo
-PUT http://localhost:8080/departments/1
+PUT {{H}}/departments/1
 Content-Type: application/json
+authorization: {{token}}
 
 {
     "name": "IT Department"
@@ -68,5 +101,9 @@ Content-Type: application/json
 
 
 
-### Delete department with ID 4
-DELETE http://localhost:8080/departments/4
+### Delete department with ID 5
+DELETE {{H}}/departments/5
+authorization: {{token}}
+
+
+

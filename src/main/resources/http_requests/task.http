@@ -1,6 +1,24 @@
+###
+@H="http://localhost:8080"
+
+###
+@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxOTc3OTMxOCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.oNrMJtwj6TJIRP1D4yEAZrUJddOWuCTP3a_UbhWID5k"
+
+
+###
+### Login admin user
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "admin",
+    "password": "admin"
+}
+
 ### Creates a new task
-POST http://localhost:8080/tasks
+POST {{H}}/tasks
 Content-Type: application/json
+authorization: {{token}}
 
 {
     "title": "Setup worker computers",
@@ -12,8 +30,10 @@ Content-Type: application/json
 }
 
 ### Creates a task by user with ID 2
-POST http://localhost:8080/tasks
+POST {{H}}/tasks
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
   "title": "Interview new candidates",
@@ -27,8 +47,10 @@ Content-Type: application/json
 }
 
 ### Creates a task for the Test department
-POST http://localhost:8080/tasks
+POST {{H}}/tasks
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
   "title": "TEST TASK",
@@ -41,8 +63,10 @@ Content-Type: application/json
 }
 
 ### Creates another task
-POST http://localhost:8080/tasks
+POST {{H}}/tasks
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
   "title": "Work on budget for next week",
@@ -56,8 +80,10 @@ Content-Type: application/json
 }
 
 ### Creates another task
-POST http://localhost:8080/tasks
+POST {{H}}/tasks
 Content-Type: application/json
+authorization: {{token}}
+
 
 {
   "title": "new task",
@@ -70,17 +96,22 @@ Content-Type: application/json
 }
 
 ### Get all tasks
-GET http://localhost:8080/tasks
+GET {{H}}/tasks
+authorization: {{token}}
+
 
 ### Gets task with task ID 1
-GET http://localhost:8080/tasks/1
+GET {{H}}/tasks/1
+authorization: {{token}}
 
 ### Gets task with task ID 2
-GET http://localhost:8080/tasks/2
+GET {{H}}/tasks/2
+authorization: {{token}}
 
 ### Updates task with task ID 5
-PUT http://localhost:8080/tasks/5
+PUT {{H}}/tasks/5
 Content-Type: application/json
+authorization: {{token}}
 
 {
     "title": "Old task",
@@ -90,17 +121,22 @@ Content-Type: application/json
 
 
 ### Gets tasks created by user with ID 1
-GET http://localhost:8080/tasks/created-by/1
+GET {{H}}/tasks/created-by/1
 Accept: application/json
+authorization: {{token}}
 
 
 
 ### Gets tasks assigned to user with ID 2
-GET http://localhost:8080/tasks/assigned-to/2
+GET {{H}}/tasks/assigned-to/2
 Accept: application/json
+authorization: {{token}}
+
 
 ### Delete task with ID 2
-DELETE http://localhost:8080/tasks/2
+DELETE {{H}}/tasks/2
+authorization: {{token}}
 
 ### Delete task with ID 4
-DELETE http://localhost:8080/tasks/4
+DELETE {{H}}/tasks/4
+authorization: {{token}}

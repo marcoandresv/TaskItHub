@@ -11,5 +11,9 @@ import com.ironhack.taskithub.model.Department;
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, Long>{
 
+    Department findByName(String name);
+
+    Boolean existsByName(String name);
+
     
 }
