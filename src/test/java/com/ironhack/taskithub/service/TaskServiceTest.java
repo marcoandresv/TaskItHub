@@ -1,197 +1,199 @@
 package com.ironhack.taskithub.service;
 
 import com.ironhack.taskithub.dto.TaskDTO;
+import com.ironhack.taskithub.enums.Priority;
+import com.ironhack.taskithub.enums.Status;
 import com.ironhack.taskithub.model.Department;
 import com.ironhack.taskithub.model.Task;
 import com.ironhack.taskithub.model.User;
 import com.ironhack.taskithub.repository.DepartmentRepository;
 import com.ironhack.taskithub.repository.TaskRepository;
 import com.ironhack.taskithub.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 /**
  * TaskServiceTest
  */
 @SpringBootTest
-class TaskServiceTest {
+public class TaskServiceTest {
 
-    @InjectMocks
+    @Autowired
     private TaskService taskService;
 
-    @Mock
+    @Autowired
     private TaskRepository taskRepository;
 
-    @Mock
+    @Autowired
     private UserRepository userRepository;
 
-    @Mock
+    @Autowired
     private DepartmentRepository departmentRepository;
+
+    private Task testTask;
+    private User testUser;
+    private Department testDepartment;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        testDepartment = new Department();
+        testDepartment.setName("Test Department");
+        testDepartment = departmentRepository.save(testDepartment);
+
+        testUser = new User();
+        testUser.setName("Test User");
+        testUser.setUsername("testuser");
+        testUser.setPassword("password");
+        testUser = userRepository.save(testUser);
+
+        testTask = new Task();
+        testTask.setTitle("Test Task");
+        testTask.setDescription("Test Description");
+        testTask.setDepartment(testDepartment);
+        testTask.setCreatedBy(testUser);
+        testTask.setPriority(Priority.MEDIUM);
+        testTask.setStatus(Status.NOT_STARTED);
+        testTask.setDueDate(LocalDateTime.now().plusDays(7));
+        testTask = taskRepository.save(testTask);
+    }
+
+    @AfterEach
+    void tearDown() {
+        taskRepository.deleteAll();
+        userRepository.deleteAll();
+        departmentRepository.deleteAll();
     }
 
     @Test
-    void createTaskFromDTO_validDTO_returnsCreatedTask() {
+    @Transactional
+    void createTaskFromDTO_validInput_taskCreated() {
         TaskDTO taskDTO = new TaskDTO();
-        taskDTO.setTitle("Test Task");
-        taskDTO.setDepartmentId(1L);
-        taskDTO.setCreatedById(1L);
-        taskDTO.setAssignedUserIds(Arrays.asList(1L, 2L));
-
-        Department department = new Department();
-        department.setId(1L);
-        User createdBy = new User();
-        createdBy.setId(1L);
-        User assignedUser1 = new User();
-        assignedUser1.setId(1L);
-        User assignedUser2 = new User();
-        assignedUser2.setId(2L);
-
-        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(createdBy));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(assignedUser2));
-        when(taskRepository.save(any(Task.class))).thenAnswer(i -> i.getArguments()[0]);
+        taskDTO.setTitle("New Task");
+        taskDTO.setDescription("New Description");
+        taskDTO.setPriority(Priority.HIGH);
+        taskDTO.setStatus(Status.IN_PROGRESS);
+        taskDTO.setDueDate(LocalDateTime.now().plusDays(14));
+        taskDTO.setDepartmentId(testDepartment.getId());
+        taskDTO.setCreatedById(testUser.getId());
+        taskDTO.setAssignedUserIds(Arrays.asList(testUser.getId()));
 
         Task createdTask = taskService.createTaskFromDTO(taskDTO);
 
         assertNotNull(createdTask);
-        assertEquals("Test Task", createdTask.getTitle());
-        assertEquals(department, createdTask.getDepartment());
-        assertEquals(createdBy, createdTask.getCreatedBy());
-        assertEquals(2, createdTask.getAssignedUsers().size());
+        assertEquals("New Task", createdTask.getTitle());
+        assertEquals("New Description", createdTask.getDescription());
+        assertEquals(Priority.HIGH, createdTask.getPriority());
+        assertEquals(Status.IN_PROGRESS, createdTask.getStatus());
+        assertEquals(testDepartment.getId(), createdTask.getDepartment().getId());
+        assertEquals(testUser.getId(), createdTask.getCreatedBy().getId());
+        assertTrue(createdTask.getAssignedUsers().contains(testUser));
     }
 
     @Test
-    void getTasksByDepartment_validDepartmentId_returnsTaskList() {
-        Department department = new Department();
-        department.setId(1L);
-        Task task1 = new Task();
-        task1.setId(1L);
-        Task task2 = new Task();
-        task2.setId(2L);
-
-        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
-        when(taskRepository.findByDepartmentId(1L)).thenReturn(Arrays.asList(task1, task2));
-
-        List<Task> tasks = taskService.getTasksByDepartment(1L);
-
-        assertNotNull(tasks);
-        assertEquals(2, tasks.size());
+    @Transactional
+    void getTasksByDepartment_existingDepartment_returnsTasks() {
+        List<Task> tasks = taskService.getTasksByDepartment(testDepartment.getId());
+        assertFalse(tasks.isEmpty());
+        assertTrue(tasks.contains(testTask));
     }
 
     @Test
-    void getTasksByDepartment_invalidDepartmentId_throwsResponseStatusException() {
-        when(departmentRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-        assertThrows(ResponseStatusException.class, () -> taskService.getTasksByDepartment(1L));
+    @Transactional
+    void getTasksByDepartment_nonExistingDepartment_throwsException() {
+        assertThrows(ResponseStatusException.class, () -> taskService.getTasksByDepartment(999L));
     }
 
     @Test
-    void getTasksCreatedByUser_validUserId_returnsTaskList() {
-        User user = new User();
-        user.setId(1L);
-        Task task1 = new Task();
-        task1.setId(1L);
-        Task task2 = new Task();
-        task2.setId(2L);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(taskRepository.findByCreatedBy_Id(1L)).thenReturn(Arrays.asList(task1, task2));
-
-        List<Task> tasks = taskService.getTasksCreatedByUser(1L);
-
-        assertNotNull(tasks);
-        assertEquals(2, tasks.size());
+    @Transactional
+    void getTasksCreatedByUser_existingUser_returnsTasks() {
+        List<Task> tasks = taskService.getTasksCreatedByUser(testUser.getId());
+        assertFalse(tasks.isEmpty());
+        assertTrue(tasks.contains(testTask));
     }
 
     @Test
-    void getTasksAssignedToUser_validUserId_returnsTaskList() {
-        User user = new User();
-        user.setId(1L);
-        Task task1 = new Task();
-        task1.setId(1L);
-        Task task2 = new Task();
-        task2.setId(2L);
+    @Transactional
+    void getTasksAssignedToUser_existingUser_returnsTasks() {
+        testTask.setAssignedUsers(new ArrayList<>(Arrays.asList(testUser)));
+        taskRepository.save(testTask);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(taskRepository.findByAssignedUsers_Id(1L)).thenReturn(Arrays.asList(task1, task2));
-
-        List<Task> tasks = taskService.getTasksAssignedToUser(1L);
-
-        assertNotNull(tasks);
-        assertEquals(2, tasks.size());
+        List<Task> tasks = taskService.getTasksAssignedToUser(testUser.getId());
+        assertFalse(tasks.isEmpty());
+        assertTrue(tasks.contains(testTask));
     }
 
     @Test
-    void getTaskById_validId_returnsTask() {
-        Task task = new Task();
-        task.setId(1L);
-        task.setTitle("Test Task");
-
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
-
-        Task foundTask = taskService.getTaskById(1L);
-
+    @Transactional
+    void getTaskById_existingId_returnsTask() {
+        Task foundTask = taskService.getTaskById(testTask.getId());
         assertNotNull(foundTask);
-        assertEquals("Test Task", foundTask.getTitle());
+        assertEquals(testTask.getTitle(), foundTask.getTitle());
     }
 
     @Test
-    void getTaskById_invalidId_throwsResponseStatusException() {
-        when(taskRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-        assertThrows(ResponseStatusException.class, () -> taskService.getTaskById(1L));
+    @Transactional
+    void getTaskById_nonExistingId_throwsException() {
+        assertThrows(ResponseStatusException.class, () -> taskService.getTaskById(999L));
     }
 
     @Test
-    void updateTaskFromDTO_validIdAndDTO_returnsUpdatedTask() {
-        Task existingTask = new Task();
-        existingTask.setId(1L);
-        existingTask.setTitle("Old Title");
+    @Transactional
+    void getAllTasks_returnsAllTasks() {
+        List<Task> tasks = taskService.getAllTasks();
+        assertFalse(tasks.isEmpty());
+        assertTrue(tasks.contains(testTask));
+    }
 
-        TaskDTO updateDTO = new TaskDTO();
-        updateDTO.setTitle("New Title");
-        updateDTO.setAssignedUserIds(Arrays.asList(1L, 2L));
+    @Test
+    @Transactional
+    void updateTaskFromDTO_validInput_taskUpdated() {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setTitle("Updated Task");
+        taskDTO.setDescription("Updated Description");
+        taskDTO.setPriority(Priority.LOW);
+        taskDTO.setStatus(Status.COMPLETED);
+        taskDTO.setDueDate(LocalDateTime.now().plusDays(21));
+        taskDTO.setAssignedUserIds(Arrays.asList(testUser.getId()));
 
-        User user1 = new User();
-        user1.setId(1L);
-        User user2 = new User();
-        user2.setId(2L);
-
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user1));
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
-        when(taskRepository.save(any(Task.class))).thenAnswer(i -> i.getArguments()[0]);
-
-        Task updatedTask = taskService.updateTaskFromDTO(1L, updateDTO);
+        Task updatedTask = taskService.updateTaskFromDTO(testTask.getId(), taskDTO);
 
         assertNotNull(updatedTask);
-        assertEquals("New Title", updatedTask.getTitle());
-        assertEquals(2, updatedTask.getAssignedUsers().size());
+        assertEquals("Updated Task", updatedTask.getTitle());
+        assertEquals("Updated Description", updatedTask.getDescription());
+        assertEquals(Priority.LOW, updatedTask.getPriority());
+        assertEquals(Status.COMPLETED, updatedTask.getStatus());
+        assertTrue(updatedTask.getAssignedUsers().contains(testUser));
     }
 
     @Test
-    void deleteTask_existingId_deletesCalled() {
-        doNothing().when(taskRepository).deleteById(1L);
+    @Transactional
+    void deleteTask_existingId_taskDeleted() {
+        taskService.deleteTask(testTask.getId());
+        assertFalse(taskRepository.existsById(testTask.getId()));
+    }
 
-        taskService.deleteTask(1L);
-
-        verify(taskRepository).deleteById(1L);
+    @Test
+    @Transactional
+    void toTaskDTO_validTask_returnsCorrectDTO() {
+        TaskDTO taskDTO = taskService.toTaskDTO(testTask);
+        assertEquals(testTask.getId(), taskDTO.getId());
+        assertEquals(testTask.getTitle(), taskDTO.getTitle());
+        assertEquals(testTask.getDescription(), taskDTO.getDescription());
+        assertEquals(testTask.getPriority(), taskDTO.getPriority());
+        assertEquals(testTask.getStatus(), taskDTO.getStatus());
+        assertEquals(testTask.getDepartment().getId(), taskDTO.getDepartmentId());
+        assertEquals(testTask.getCreatedBy().getId(), taskDTO.getCreatedById());
     }
 }

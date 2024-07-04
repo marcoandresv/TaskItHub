@@ -2,141 +2,127 @@ package com.ironhack.taskithub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironhack.taskithub.dto.UserDTO;
+import com.ironhack.taskithub.enums.Role;
+import com.ironhack.taskithub.model.User;
+import com.ironhack.taskithub.repository.UserRepository;
+import com.ironhack.taskithub.security.filters.CustomAuthenticationFilter;
 import com.ironhack.taskithub.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * UserControllerTest
  */
+
 @SpringBootTest
-class UserControllerTest {
+@AutoConfigureMockMvc
+public class UserControllerTest {
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    private MockMvc mockMvc;
 
-    @MockBean
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private UserService userService;
 
-    private MockMvc mockMvc;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private User testUser;
+    private String authToken;
 
     @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    void setUp() throws Exception {
+        userRepository.deleteAll();
+
+        testUser = new User();
+        testUser.setName("Test User");
+        testUser.setUsername("testuser");
+        testUser.setPassword(passwordEncoder.encode("password"));
+        testUser.setRole(Role.ADMIN);
+        testUser = userRepository.save(testUser);
+
+        // Obtain auth token
+        CustomAuthenticationFilter filter = new CustomAuthenticationFilter(authenticationManager);
+        MvcResult result = mockMvc.perform(post("/api/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"testuser\",\"password\":\"password\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        authToken = objectMapper.readTree(response).get("access_token").asText();
     }
 
     @Test
-    void createUser_validUserDTO_userCreated() throws Exception {
-        UserDTO inputDTO = new UserDTO();
-        inputDTO.setUsername("newuser");
-        inputDTO.setPassword("password");
-
-        UserDTO outputDTO = new UserDTO();
-        outputDTO.setId(1L);
-        outputDTO.setUsername("newuser");
-
-        when(userService.createUser(any(UserDTO.class))).thenReturn(outputDTO);
+    void createUser() throws Exception {
+        UserDTO newUser = new UserDTO();
+        newUser.setName("New User");
+        newUser.setUsername("newuser");
+        newUser.setPassword("password");
+        newUser.setRole(Role.USER.name());
 
         mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(inputDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                .header("Authorization", authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("New User"))
                 .andExpect(jsonPath("$.username").value("newuser"));
     }
 
     @Test
-    void getUserByUsername_existingUsername_userReturned() throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
-        userDTO.setUsername("testuser");
-
-        when(userService.getUserByUsername("testuser")).thenReturn(userDTO);
-
-        mockMvc.perform(get("/users/username/{username}", "testuser"))
+    void getAllUsers() throws Exception {
+        mockMvc.perform(get("/users")
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.username").value("testuser"));
+                .andExpect(jsonPath("$[0].name").value("Test User"));
     }
 
     @Test
-    void getUserById_existingId_userReturned() throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(1L);
-        userDTO.setUsername("testuser");
-
-        when(userService.getUserById(1L)).thenReturn(userDTO);
-
-        mockMvc.perform(get("/users/{id}", 1L))
+    void getUserById() throws Exception {
+        mockMvc.perform(get("/users/" + testUser.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.username").value("testuser"));
+                .andExpect(jsonPath("$.name").value("Test User"));
     }
 
     @Test
-    void getAllUsers_usersExist_listReturned() throws Exception {
-        UserDTO user1 = new UserDTO();
-        user1.setId(1L);
-        user1.setUsername("user1");
+    void updateUser() throws Exception {
+        UserDTO updateUser = new UserDTO();
+        updateUser.setName("Updated User");
 
-        UserDTO user2 = new UserDTO();
-        user2.setId(2L);
-        user2.setUsername("user2");
-
-        List<UserDTO> users = Arrays.asList(user1, user2);
-
-        when(userService.getAllUsers()).thenReturn(users);
-
-        mockMvc.perform(get("/users"))
+        mockMvc.perform(put("/users/" + testUser.getId())
+                .header("Authorization", authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateUser)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].username").value("user1"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].username").value("user2"));
+                .andExpect(jsonPath("$.name").value("Updated User"));
     }
 
     @Test
-    void updateUser_existingId_userUpdated() throws Exception {
-        UserDTO inputDTO = new UserDTO();
-        inputDTO.setUsername("updateduser");
-
-        UserDTO outputDTO = new UserDTO();
-        outputDTO.setId(1L);
-        outputDTO.setUsername("updateduser");
-
-        when(userService.updateUserFromDTO(eq(1L), any(UserDTO.class))).thenReturn(outputDTO);
-
-        mockMvc.perform(put("/users/{id}", 1L)
-                .content(objectMapper.writeValueAsString(inputDTO))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.username").value("updateduser"));
-    }
-
-    @Test
-    void deleteUser_existingId_userDeleted() throws Exception {
-        doNothing().when(userService).deleteUser(1L);
-
-        mockMvc.perform(delete("/users/{id}", 1L))
+    void deleteUser() throws Exception {
+        mockMvc.perform(delete("/users/" + testUser.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isNoContent());
-
-        verify(userService, times(1)).deleteUser(1L);
     }
 }

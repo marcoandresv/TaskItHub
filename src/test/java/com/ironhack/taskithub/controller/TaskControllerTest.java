@@ -2,207 +2,167 @@ package com.ironhack.taskithub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironhack.taskithub.dto.TaskDTO;
-import com.ironhack.taskithub.dto.TaskSummaryDTO;
+import com.ironhack.taskithub.enums.Priority;
+import com.ironhack.taskithub.enums.Status;
+import com.ironhack.taskithub.model.Department;
 import com.ironhack.taskithub.model.Task;
-import com.ironhack.taskithub.service.TaskService;
+import com.ironhack.taskithub.model.User;
+import com.ironhack.taskithub.repository.DepartmentRepository;
+import com.ironhack.taskithub.repository.TaskRepository;
+import com.ironhack.taskithub.repository.UserRepository;
+import com.ironhack.taskithub.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalDateTime;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 /**
  * TaskControllerTest
  */
 @SpringBootTest
-class TaskControllerTest {
+@AutoConfigureMockMvc
+public class TaskControllerTest {
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @MockBean
-    private TaskService taskService;
-
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    private Task testTask;
+    private User testUser;
+    private Department testDepartment;
+    private String authToken;
 
     @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    void setUp() throws Exception {
+        taskRepository.deleteAll();
+        userRepository.deleteAll();
+        departmentRepository.deleteAll();
+
+        Department department = new Department();
+        department.setName("Test Department");
+        testDepartment = departmentRepository.save(department);
+
+        User user = new User();
+        user.setName("Test User");
+        user.setUsername("testuser");
+        user.setPassword(passwordEncoder.encode("password"));
+        user.setRole(Role.ADMIN);
+        testUser = userRepository.save(user);
+
+        Task task = new Task();
+        task.setTitle("Test Task");
+        task.setDescription("Test Description");
+        task.setDepartment(testDepartment);
+        task.setCreatedBy(testUser);
+        task.setPriority(Priority.MEDIUM);
+        task.setStatus(Status.NOT_STARTED);
+        task.setDueDate(LocalDateTime.now().plusDays(7));
+        testTask = taskRepository.save(task);
+
+        // Obtain auth token
+        MvcResult result = mockMvc.perform(post("/api/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"testuser\",\"password\":\"password\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        authToken = objectMapper.readTree(response).get("access_token").asText();
     }
 
     @Test
-    void createTask_validTaskDTO_taskCreated() throws Exception {
-        TaskDTO inputDTO = new TaskDTO();
-        inputDTO.setTitle("New Task");
-        inputDTO.setDescription("Task description");
-        inputDTO.setCreatedById(1L);
-        inputDTO.setAssignedUserIds(Arrays.asList(2L));
-
-        TaskSummaryDTO outputDTO = new TaskSummaryDTO();
-        outputDTO.setId(1L);
-        outputDTO.setTitle("New Task");
-
-        when(taskService.createTaskFromDTO(any(TaskDTO.class))).thenReturn(new Task());
-        when(taskService.toTaskSummaryDTO(any(Task.class))).thenReturn(outputDTO);
+    void createTask() throws Exception {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setTitle("New Task");
+        taskDTO.setDescription("New Description");
+        taskDTO.setPriority(Priority.HIGH);
+        taskDTO.setStatus(Status.IN_PROGRESS);
+        taskDTO.setDueDate(LocalDateTime.now().plusDays(14));
+        taskDTO.setDepartmentId(testDepartment.getId());
+        taskDTO.setCreatedById(testUser.getId());
 
         mockMvc.perform(post("/tasks")
-                .content(objectMapper.writeValueAsString(inputDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                .header("Authorization", authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(taskDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").value("New Task"));
     }
 
     @Test
-    void getTaskById_existingId_taskReturned() throws Exception {
-        TaskSummaryDTO taskDTO = new TaskSummaryDTO();
-        taskDTO.setId(1L);
-        taskDTO.setTitle("Task Title");
-
-        when(taskService.getTaskById(1L)).thenReturn(new Task());
-        when(taskService.toTaskSummaryDTO(any(Task.class))).thenReturn(taskDTO);
-
-        mockMvc.perform(get("/tasks/{id}", 1L))
+    void getTasksByDepartment() throws Exception {
+        mockMvc.perform(get("/tasks/department/" + testDepartment.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.title").value("Task Title"));
+                .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
     @Test
-    void getTasksByDepartment_existingDepartmentId_tasksReturned() throws Exception {
-        TaskSummaryDTO task1 = new TaskSummaryDTO();
-        task1.setId(1L);
-        task1.setTitle("Task 1");
-
-        TaskSummaryDTO task2 = new TaskSummaryDTO();
-        task2.setId(2L);
-        task2.setTitle("Task 2");
-
-        List<TaskSummaryDTO> tasks = Arrays.asList(task1, task2);
-
-        when(taskService.getTasksByDepartment(1L)).thenReturn(List.of(new Task(), new Task()));
-        when(taskService.toTaskSummaryDTO(any(Task.class))).thenReturn(task1, task2);
-
-        mockMvc.perform(get("/tasks/department/{departmentId}", 1L))
+    void getTasksCreatedByUser() throws Exception {
+        mockMvc.perform(get("/tasks/created-by/" + testUser.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].title").value("Task 1"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].title").value("Task 2"));
+                .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
     @Test
-    void getTasksCreatedByUser_existingUserId_tasksReturned() throws Exception {
-        TaskSummaryDTO task1 = new TaskSummaryDTO();
-        task1.setId(1L);
-        task1.setTitle("Task 1");
-
-        TaskSummaryDTO task2 = new TaskSummaryDTO();
-        task2.setId(2L);
-        task2.setTitle("Task 2");
-
-        List<TaskSummaryDTO> tasks = Arrays.asList(task1, task2);
-
-        when(taskService.getTasksCreatedByUser(1L)).thenReturn(List.of(new Task(), new Task()));
-        when(taskService.toTaskSummaryDTO(any(Task.class))).thenReturn(task1, task2);
-
-        mockMvc.perform(get("/tasks/created-by/{userId}", 1L))
+    void getTaskById() throws Exception {
+        mockMvc.perform(get("/tasks/" + testTask.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].title").value("Task 1"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].title").value("Task 2"));
+                .andExpect(jsonPath("$.title").value("Test Task"));
     }
 
     @Test
-    void getTasksAssignedToUser_existingUserId_tasksReturned() throws Exception {
-        TaskSummaryDTO task1 = new TaskSummaryDTO();
-        task1.setId(1L);
-        task1.setTitle("Task 1");
-
-        TaskSummaryDTO task2 = new TaskSummaryDTO();
-        task2.setId(2L);
-        task2.setTitle("Task 2");
-
-        List<TaskSummaryDTO> tasks = Arrays.asList(task1, task2);
-
-        when(taskService.getTasksAssignedToUser(1L)).thenReturn(List.of(new Task(), new Task()));
-        when(taskService.toTaskSummaryDTO(any(Task.class))).thenReturn(task1, task2);
-
-        mockMvc.perform(get("/tasks/assigned-to/{userId}", 1L))
+    void getAllTasks() throws Exception {
+        mockMvc.perform(get("/tasks")
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].title").value("Task 1"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].title").value("Task 2"));
+                .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
     @Test
-    void getAllTasks_tasksExist_listReturned() throws Exception {
-        TaskDTO task1 = new TaskDTO();
-        task1.setId(1L);
-        task1.setTitle("Task 1");
+    void updateTask() throws Exception {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setTitle("Updated Task");
 
-        TaskDTO task2 = new TaskDTO();
-        task2.setId(2L);
-        task2.setTitle("Task 2");
-
-        List<TaskDTO> tasks = Arrays.asList(task1, task2);
-
-        when(taskService.getAllTasks()).thenReturn(List.of(new Task(), new Task()));
-        when(taskService.toTaskDTO(any(Task.class))).thenReturn(task1, task2);
-
-        mockMvc.perform(get("/tasks"))
+        mockMvc.perform(put("/tasks/" + testTask.getId())
+                .header("Authorization", authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(taskDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].title").value("Task 1"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].title").value("Task 2"));
-    }
-
-    @Test
-    void updateTask_existingId_taskUpdated() throws Exception {
-        TaskDTO inputDTO = new TaskDTO();
-        inputDTO.setTitle("Updated Task");
-        inputDTO.setDescription("Updated description");
-        inputDTO.setCreatedById(1L);
-        inputDTO.setAssignedUserIds(Arrays.asList(2L));
-
-        TaskSummaryDTO outputDTO = new TaskSummaryDTO();
-        outputDTO.setId(1L);
-        outputDTO.setTitle("Updated Task");
-
-        when(taskService.updateTaskFromDTO(eq(1L), any(TaskDTO.class))).thenReturn(new Task());
-        when(taskService.toTaskSummaryDTO(any(Task.class))).thenReturn(outputDTO);
-
-        mockMvc.perform(put("/tasks/{id}", 1L)
-                .content(objectMapper.writeValueAsString(inputDTO))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.title").value("Updated Task"));
     }
 
     @Test
-    void deleteTask_existingId_taskDeleted() throws Exception {
-        doNothing().when(taskService).deleteTask(1L);
-
-        mockMvc.perform(delete("/tasks/{id}", 1L))
+    void deleteTask() throws Exception {
+        mockMvc.perform(delete("/tasks/" + testTask.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isNoContent());
-
-        verify(taskService, times(1)).deleteTask(1L);
     }
 }

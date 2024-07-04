@@ -2,24 +2,21 @@ package com.ironhack.taskithub.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironhack.taskithub.dto.DepartmentDTO;
-import com.ironhack.taskithub.dto.DepartmentSummaryDTO;
 import com.ironhack.taskithub.model.Department;
-import com.ironhack.taskithub.service.DepartmentService;
+import com.ironhack.taskithub.model.User;
+import com.ironhack.taskithub.repository.DepartmentRepository;
+import com.ironhack.taskithub.repository.UserRepository;
+import com.ironhack.taskithub.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -27,111 +24,101 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * DepartmentControllerTest
  */
 @SpringBootTest
-class DepartmentControllerTest {
+@AutoConfigureMockMvc
+public class DepartmentControllerTest {
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @MockBean
-    private DepartmentService departmentService;
-
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    private Department testDepartment;
+    private String authToken;
 
     @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    void setUp() throws Exception {
+        departmentRepository.deleteAll();
+        userRepository.deleteAll();
+
+        // Create test user
+        User user = new User();
+        user.setName("Test User");
+        user.setUsername("testuser");
+        user.setPassword(passwordEncoder.encode("password"));
+        user.setRole(Role.ADMIN);
+        userRepository.save(user);
+
+        Department department = new Department();
+        department.setName("Test Department");
+        testDepartment = departmentRepository.save(department);
+
+        // Obtain auth token
+        MvcResult result = mockMvc.perform(post("/api/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"testuser\",\"password\":\"password\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        authToken = objectMapper.readTree(response).get("access_token").asText();
     }
 
     @Test
-    void createDepartment_validDepartmentDTO_departmentCreated() throws Exception {
-        DepartmentDTO inputDTO = new DepartmentDTO();
-        inputDTO.setName("HR");
-        inputDTO.setTaskIds(List.of(1L));
-        inputDTO.setUserIds(List.of(1L));
-
-        DepartmentSummaryDTO outputDTO = new DepartmentSummaryDTO();
-        outputDTO.setId(1L);
-        outputDTO.setName("HR");
-
-        when(departmentService.createDepartmentFromDTO(any(DepartmentDTO.class))).thenReturn(new Department());
-        when(departmentService.toDepartmentSummaryDTO(any(Department.class))).thenReturn(outputDTO);
+    void createDepartment() throws Exception {
+        DepartmentDTO departmentDTO = new DepartmentDTO();
+        departmentDTO.setName("New Department");
 
         mockMvc.perform(post("/departments")
-                .content(objectMapper.writeValueAsString(inputDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+                .header("Authorization", authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(departmentDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("HR"));
+                .andExpect(jsonPath("$.name").value("New Department"));
     }
 
     @Test
-    void getDepartmentById_existingId_departmentReturned() throws Exception {
-        DepartmentSummaryDTO departmentDTO = new DepartmentSummaryDTO();
-        departmentDTO.setId(1L);
-        departmentDTO.setName("HR");
-
-        when(departmentService.getDepartmentById(1L)).thenReturn(new Department());
-        when(departmentService.toDepartmentSummaryDTO(any(Department.class))).thenReturn(departmentDTO);
-
-        mockMvc.perform(get("/departments/{id}", 1L))
+    void getDepartmentById() throws Exception {
+        mockMvc.perform(get("/departments/" + testDepartment.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("HR"));
+                .andExpect(jsonPath("$.name").value("Test Department"));
     }
 
     @Test
-    void getAllDepartments_departmentsExist_listReturned() throws Exception {
-        DepartmentDTO department1 = new DepartmentDTO();
-        department1.setId(1L);
-        department1.setName("HR");
-
-        DepartmentDTO department2 = new DepartmentDTO();
-        department2.setId(2L);
-        department2.setName("IT");
-
-        List<DepartmentDTO> departments = Arrays.asList(department1, department2);
-
-        when(departmentService.getAllDepartments()).thenReturn(List.of(new Department(), new Department()));
-        when(departmentService.toDepartmentDTO(any(Department.class))).thenReturn(department1, department2);
-
-        mockMvc.perform(get("/departments"))
+    void getAllDepartments() throws Exception {
+        mockMvc.perform(get("/departments")
+                .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].name").value("HR"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].name").value("IT"));
+                .andExpect(jsonPath("$[0].name").value("Test Department"));
     }
 
     @Test
-    void updateDepartment_existingId_departmentUpdated() throws Exception {
-        DepartmentDTO inputDTO = new DepartmentDTO();
-        inputDTO.setName("HR Updated");
-        inputDTO.setTaskIds(List.of(1L));
-        inputDTO.setUserIds(List.of(1L));
+    void updateDepartment() throws Exception {
+        DepartmentDTO departmentDTO = new DepartmentDTO();
+        departmentDTO.setName("Updated Department");
 
-        DepartmentSummaryDTO outputDTO = new DepartmentSummaryDTO();
-        outputDTO.setId(1L);
-        outputDTO.setName("HR Updated");
-
-        when(departmentService.updateDepartmentFromDTO(eq(1L), any(DepartmentDTO.class))).thenReturn(new Department());
-        when(departmentService.toDepartmentSummaryDTO(any(Department.class))).thenReturn(outputDTO);
-
-        mockMvc.perform(put("/departments/{id}", 1L)
-                .content(objectMapper.writeValueAsString(inputDTO))
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(put("/departments/" + testDepartment.getId())
+                .header("Authorization", authToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(departmentDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("HR Updated"));
+                .andExpect(jsonPath("$.name").value("Updated Department"));
     }
 
     @Test
-    void deleteDepartment_existingId_departmentDeleted() throws Exception {
-        doNothing().when(departmentService).deleteDepartment(1L);
-
-        mockMvc.perform(delete("/departments/{id}", 1L))
+    void deleteDepartment() throws Exception {
+        mockMvc.perform(delete("/departments/" + testDepartment.getId())
+                .header("Authorization", authToken))
                 .andExpect(status().isNoContent());
-
-        verify(departmentService, times(1)).deleteDepartment(1L);
     }
 }

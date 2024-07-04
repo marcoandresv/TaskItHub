@@ -143,7 +143,7 @@ public class UserService implements UserDetailsService {
 
         if (userDTO.getPassword() != null) {
             existingUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-            //existingUser.setPassword(userDTO.getPassword());
+            // existingUser.setPassword(userDTO.getPassword());
         }
 
         if (userDTO.getUsername() != null) {
@@ -174,7 +174,25 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // to automatically reassign tasks to another user if the user is deleted. setting to "null"
+
+        List<Task> userTasks = taskRepository.findByAssignedUsers_Id(id); // Fetch the asssigned-to tasks
+        for (Task task : userTasks) {
+            task.setAssignedUsers(null);
+        }
+
+        List<Task> createdTasks = taskRepository.findByCreatedBy_Id(id); // Fetch the created-by tasks
+        for (Task task : createdTasks) {
+            task.setCreatedBy(null);
+        }
+
+        taskRepository.saveAll(userTasks);
+        taskRepository.saveAll(createdTasks);
+
+        userRepository.delete(user);
     }
 
     public UserDTO toUserDTO(User user) {
