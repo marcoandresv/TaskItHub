@@ -2,10 +2,13 @@
 @H="http://localhost:8080"
 
 ###
-@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcyMDAyMDc3NCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.7cOOcPqYjOBJvjK3Aa7iFucImES2sHAacNAqDQRy4Os"
+@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcyMDIxNjAzMiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.2x0oymVEn-VUa2tzDl5DGXOnitPjP_3__gbm9cvxfqg"
 
 
-###
+###########################################################
+
+
+
 ### Login admin user
 POST {{H}}/api/login
 accept: application/json
@@ -14,6 +17,19 @@ accept: application/json
    "username": "admin",
     "password": "admin"
 }
+
+
+### Login default user
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "miguel",
+    "password": "password"
+}
+
+
+###########################################################
 
 ### Creates a new task
 POST {{H}}/tasks
@@ -25,7 +41,7 @@ authorization: {{token}}
     "description": "Need to set up worker computers for our office",
     "status": "IN_PROGRESS",
     "departmentId": 1,
-    "createdById": 1,
+    "createdById": 2,
     "assignedUserIds": [1, 2]
 }
 
@@ -41,9 +57,9 @@ authorization: {{token}}
   "dueDate": "2024-07-01T00:00:00",
   "priority": "MEDIUM",
   "status": "NOT_STARTED",
-  "departmentId": 1,
-  "createdById": 2,
-  "assignedUserIds": [1, 2]
+  "departmentId": 3,
+  "createdById": 3,
+  "assignedUserIds": [6]
 }
 
 ### Creates a task for the Test department

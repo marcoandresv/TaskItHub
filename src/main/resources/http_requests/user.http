@@ -2,12 +2,13 @@
 @H="http://localhost:8080"
 
 ###
-@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcyMDAyMDc3NCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2FwaS9sb2dpbiIsInJvbGVzIjpbIkFETUlOIl19.7cOOcPqYjOBJvjK3Aa7iFucImES2sHAacNAqDQRy4Os"
+@token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtaWd1ZWwiLCJleHAiOjE3MjAyMDQ2NzYsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hcGkvbG9naW4iLCJyb2xlcyI6WyJVU0VSIl19.-f7MEn7PsUAB1fcTt00YkZiKWVE93fEhL7c9Jb1Aqtw"
+
+
+###########################################################
 
 
 
-
-###
 ### Login admin user
 POST {{H}}/api/login
 accept: application/json
@@ -19,7 +20,7 @@ accept: application/json
 
 
 ###
-### Login marco 
+### Login ADMIN user
 POST {{H}}/api/login
 accept: application/json
 
@@ -28,6 +29,18 @@ accept: application/json
     "password": "123456"
 }
 
+
+
+### Login default user
+POST {{H}}/api/login
+accept: application/json
+
+{
+   "username": "miguel",
+    "password": "password"
+}
+
+###########################################################
 
 ### Post a user
 POST {{H}}/users
@@ -48,10 +61,10 @@ Authorization: {{token}}
 
 
 {
-    "name": "Julie",
-    "username": "djou",
-    "password": "test",
-    "role": "USER"
+    "name": "Lisa Medina",
+    "username": "lisamedinag",
+    "password": "123456",
+    "role": "ADMIN"
 }
 
 ### Post Test user
@@ -60,9 +73,9 @@ content-type: application/json
 Authorization: {{token}}
 
 {
-    "name": "TEST test",
-    "username": "test",
-    "password": "test",
+    "name": "Miguel Angel",
+    "username": "miguel",
+    "password": "password",
     "role": "USER"
 }
 
@@ -73,14 +86,55 @@ Authorization: {{token}}
 
 
 {
-    "name": "supeeertessssttt",
-    "username": "qwerwerewr",
-    "password": "asdlfkashgl",
+    "name": "Laura Sandu",
+    "username": "laurasandu",
+    "password": "123456",
+    "role": "USER"
+}
+
+### Post another user
+POST {{H}}/users
+content-type: application/json
+Authorization: {{token}}
+
+
+{
+    "name": "Cheyenne",
+    "username": "cheyenne",
+    "password": "123456",
+    "role": "USER"
+}
+
+### Post another user
+POST {{H}}/users
+content-type: application/json
+Authorization: {{token}}
+
+
+{
+    "name": "Lourdes Castellet",
+    "username": "lourdescastellet",
+    "password": "123456",
+    "role": "USER"
+}
+
+### Post another user
+POST {{H}}/users
+content-type: application/json
+Authorization: {{token}}
+
+
+{
+    "name": "Fake User",
+    "username": "faaaaaake",
+    "password": "123456",
     "role": "USER"
 }
 
 
-### Get all users
+###########################################################
+
+### GET ALL USERS
 GET {{H}}/users
 content-type: application/json
 authorization: {{token}}
@@ -103,22 +157,24 @@ GET {{H}}/users/555
 authorization: {{token}}
 
 
-### Get user with username "marcoandresv"
+### Get user with username "marcoandresv" 
 GET {{H}}/users/username/marcoandresv
 authorization: {{token}}
 
-### Get user with username "djou"
-GET {{H}}/users/username/djou
+### Get user with username 
+GET {{H}}/users/username/cheyenne
 authorization: {{token}}
 
 ### Get user with username "test"
-GET {{H}}/users/username/test
+GET {{H}}/users/username/lisamedinag
 authorization: {{token}}
 
 ### tries to get a fake user
 GET {{H}}/users/username/doesnotexist
 authorization: {{token}}
 
+
+###########################################################
 
 ### Update user with ID 2
 PUT {{H}}/users/2
@@ -133,16 +189,18 @@ authorization: {{token}}
     "departmentId": 4
 }
 
-#### Deletes user with ID 3
+###########################################################
+
+#### Deletes user with ID
 DELETE {{H}}/users/3
 authorization: {{token}}
 
-#### Deletes user with ID 4
+#### Deletes user with ID 
 DELETE {{H}}/users/4
 authorization: {{token}}
 
-#### Deletes user with ID 6
-DELETE {{H}}/users/6
+#### Deletes user with ID
+DELETE {{H}}/users/8
 authorization: {{token}}
 
 

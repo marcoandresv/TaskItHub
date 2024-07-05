@@ -117,6 +117,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/users/{id}").hasAnyAuthority("ADMIN")
 
                 .requestMatchers(HttpMethod.GET, "/departments/**").hasAnyAuthority("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/departments").hasAnyAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/departments").hasAnyAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/departments/{id}").hasAnyAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/departments/{id}").hasAnyAuthority("ADMIN")
 
                 .requestMatchers(HttpMethod.GET, "/tasks/**").hasAnyAuthority("ADMIN", "USER")
                 .requestMatchers(HttpMethod.POST, "/tasks").hasAnyAuthority("ADMIN", "USER")
