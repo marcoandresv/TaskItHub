@@ -173,6 +173,7 @@ Authorization: {{token}}
 ### Contact
 For any inquiries, please reach out to:
 - **Project Lead:** Marco Villasmil
+	- [LinkedIn](https://www.linkedin.com/in/marcoandresv/)
 - **GitHub Issues:** [Task-it HUB Issues](https://github.com/marcoandresv/TaskItHub/issues)
 ### Acknowledgements
 - Thanks to all the course teammates and users for their support and feedback.
