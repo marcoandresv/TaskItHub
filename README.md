@@ -20,6 +20,7 @@
 	- [Controllers and Endpoint Structure](#controllers-and-endpoints-structure)
 - [Future Enhancements](#future-enhancements)
 - [Resources](#resources)
+    - [Links](#links)
 	- [External Links](#external-links)
 	- [Contact](#contact)
 	- [Acknowledgements](#acknowledgements)
@@ -161,6 +162,9 @@ Authorization: {{token}}
 ---
 
 ## Resources
+### Links
+- [Project Planning](assets/extras/ProjectPlanning.md)
+- [Presentation](assets/extras/TaskItHubPresentation.pdf)
 ### External Links
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Spring Security Documentation](https://spring.io/projects/spring-security)
