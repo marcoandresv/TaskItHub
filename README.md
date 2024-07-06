@@ -176,5 +176,5 @@ For any inquiries, please reach out to:
 	- [LinkedIn](https://www.linkedin.com/in/marcoandresv/)
 - **GitHub Issues:** [Task-it HUB Issues](https://github.com/marcoandresv/TaskItHub/issues)
 ### Acknowledgements
-- Thanks to all the course teammates and users for their support and feedback.
+- Thanks to all the bootcamp's teammates and teacher for their support and feedback.
 - Special thanks to <img src="https://miro.medium.com/v2/resize:fit:600/1*ld5JBZuzgBnjHV4RVzV6NQ.png" width="30"/> [Ironhack](https://www.ironhack.com/) for their guidance, support and resources.
